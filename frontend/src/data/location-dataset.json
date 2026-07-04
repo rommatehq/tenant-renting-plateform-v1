@@ -123,5 +123,13 @@
       { "id": "KOL015-1", "name": "Titagarh" },
       { "id": "KOL015-2", "name": "Khardaha" }
     ]
+  },
+    {
+    "area_id": "KOL016",
+    "area": "Kestopur",
+    "sub_areas": [
+      { "id": "KOL016-1", "name": "Barwaritala" }
+      
+    ]
   }
 ]
