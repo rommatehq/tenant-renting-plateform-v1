@@ -78,11 +78,48 @@ function useBreakpoint() {
 export default function PropertyDetails() {
   const [listing, setListing] = useState(null);
   const [copyStatus, setCopyStatus] = useState("");
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const { id } = useParams();
   const navigate = useNavigate();
   const bp = useBreakpoint();
 
   const isMobile = bp === "mobile";
+  const galleryImages =
+    Array.isArray(listing?.images) && listing.images.length > 0
+      ? listing.images
+      : PHOTOS;
+
+  const openGallery = (index = 0) => {
+    setActiveImageIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const closeGallery = () => setIsGalleryOpen(false);
+
+  useEffect(() => {
+    if (isGalleryOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isGalleryOpen]);
+
+  const showPrevImage = () => {
+    setActiveImageIndex((prev) =>
+      prev === 0 ? galleryImages.length - 1 : prev - 1,
+    );
+  };
+
+  const showNextImage = () => {
+    setActiveImageIndex((prev) =>
+      prev === galleryImages.length - 1 ? 0 : prev + 1,
+    );
+  };
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -322,6 +359,94 @@ export default function PropertyDetails() {
           grid-template-columns: 1fr 1fr;
           grid-template-rows: 1fr 1fr;
           gap: 8px;
+        }
+
+        .pd-photo-main,
+        .pd-photo-thumb {
+          border: none;
+          padding: 0;
+          background: transparent;
+          cursor: pointer;
+          width: 100%;
+          height: 100%;
+        }
+
+        .pd-photo-main {
+          display: block;
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .pd-photo-thumb {
+          position: relative;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .pd-gallery-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(10, 12, 24, 0.78);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          z-index: 10000;
+        }
+
+        .pd-gallery-modal {
+          width: min(1080px, 100%);
+          max-height: 90vh;
+          background: #fff;
+          border-radius: 24px;
+          padding: 20px;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .pd-gallery-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        .pd-gallery-image {
+          width: 100%;
+          height: min(70vh, 620px);
+          object-fit: contain;
+          display: block;
+          background: #f3f0ff;
+          border-radius: 18px;
+        }
+
+        .pd-gallery-controls {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin-top: 16px;
+        }
+
+        .pd-gallery-btn {
+          border: none;
+          border-radius: 999px;
+          padding: 10px 16px;
+          background: #5b54d4;
+          color: #fff;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .pd-gallery-btn.secondary {
+          background: #f1edff;
+          color: #3b3584;
+        }
+
+        .pd-gallery-counter {
+          font-size: 13px;
+          color: #5f5b7b;
+          font-weight: 600;
         }
 
         /* ── Content + Sidebar layout ── */
@@ -588,9 +713,14 @@ export default function PropertyDetails() {
 
         {/* ── Photo Grid ── */}
         <div className="pd-photo-grid">
-          <div className="pd-photo-main">
+          <button
+            type="button"
+            className="pd-photo-main"
+            onClick={() => openGallery(0)}
+            aria-label="Open image gallery"
+          >
             <img
-              src={listing.images[0]}
+              src={galleryImages[0]}
               alt="main"
               style={{
                 width: "100%",
@@ -599,16 +729,15 @@ export default function PropertyDetails() {
                 display: "block",
               }}
             />
-          </div>
+          </button>
           <div className="pd-photo-right">
-            {listing.images.slice(1).map((p, i) => (
-              <div
+            {galleryImages.slice(1, 5).map((p, i) => (
+              <button
                 key={i}
-                style={{
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  position: "relative",
-                }}
+                type="button"
+                className="pd-photo-thumb"
+                onClick={() => openGallery(i + 1)}
+                aria-label={`Open image ${i + 2}`}
               >
                 <img
                   src={p}
@@ -620,8 +749,12 @@ export default function PropertyDetails() {
                     display: "block",
                   }}
                 />
-                {/* {i === 2 && (
+                {i === 3 && (
                   <div
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openGallery(0);
+                    }}
                     style={{
                       position: "absolute",
                       bottom: 10,
@@ -639,13 +772,78 @@ export default function PropertyDetails() {
                       cursor: "pointer",
                     }}
                   >
-                    ⊞ View all 24 photos
+                    ⊞ View all {galleryImages.length} images
                   </div>
-                )} */}
-              </div>
+                )}
+              </button>
             ))}
           </div>
         </div>
+
+        {isGalleryOpen && (
+          <div className="pd-gallery-backdrop" onClick={closeGallery}>
+            <div
+              className="pd-gallery-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="pd-gallery-header">
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: 18,
+                      color: "#1a1740",
+                    }}
+                  >
+                    Listing Photos
+                  </h3>
+                  <p
+                    style={{
+                      margin: "4px 0 0",
+                      fontSize: 13,
+                      color: "#7b78a0",
+                    }}
+                  >
+                    {listing.title}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="pd-gallery-btn secondary"
+                  onClick={closeGallery}
+                >
+                  Close
+                </button>
+              </div>
+
+              <img
+                src={galleryImages[activeImageIndex]}
+                alt={`listing photo ${activeImageIndex + 1}`}
+                className="pd-gallery-image"
+              />
+
+              <div className="pd-gallery-controls">
+                <button
+                  type="button"
+                  className="pd-gallery-btn"
+                  onClick={showPrevImage}
+                >
+                  ← Prev
+                </button>
+                <span className="pd-gallery-counter">
+                  {activeImageIndex + 1} / {galleryImages.length}
+                </span>
+                <button
+                  type="button"
+                  className="pd-gallery-btn"
+                  onClick={showNextImage}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Content + Sidebar ── */}
         <div className="pd-content-wrap">

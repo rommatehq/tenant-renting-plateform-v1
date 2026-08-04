@@ -76,7 +76,7 @@ const corsOptions = {
     "https://rommate.in",
     // add your Vercel URL if you have one
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };

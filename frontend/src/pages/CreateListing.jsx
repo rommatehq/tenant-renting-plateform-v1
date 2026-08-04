@@ -61,10 +61,35 @@ export default function CreateListing() {
   const [guidelines, setGuidelines] = useState([]);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const previewUrlsRef = useRef([]);
 
   const isMobile = window.innerWidth < 768;
 
   /// IT IS WORKING
+
+  const addImageFiles = (files) => {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (!imageFiles.length) return;
+
+    const urls = imageFiles.map((file) => URL.createObjectURL(file));
+    previewUrlsRef.current = [...previewUrlsRef.current, ...urls];
+    setUploadedImages((prev) => [...prev, ...imageFiles]);
+    setPreviewImages((prev) => [...prev, ...urls]);
+  };
+
+  const removeImage = (index) => {
+    setUploadedImages((prev) => prev.filter((_, idx) => idx !== index));
+    setPreviewImages((prev) => {
+      const removedUrl = prev[index];
+      if (removedUrl) {
+        URL.revokeObjectURL(removedUrl);
+        previewUrlsRef.current = previewUrlsRef.current.filter(
+          (_, idx) => idx !== index,
+        );
+      }
+      return prev.filter((_, idx) => idx !== index);
+    });
+  };
 
   // const handleSubmit = async () => {
   //   try {
@@ -289,31 +314,20 @@ export default function CreateListing() {
 
   const handleDrop = (e) => {
     e.preventDefault();
-
-    const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith("image/"),
-    );
-
-    setUploadedImages((prev) => [...prev, ...files]); // ✅ FILES
-
-    const urls = files.map((f) => URL.createObjectURL(f));
-    setPreviewImages((prev) => [...prev, ...urls]); // ✅ preview
+    addImageFiles(Array.from(e.dataTransfer.files));
   };
 
   const handleFileInput = (e) => {
-    const files = Array.from(e.target.files);
-
-    setUploadedImages((prev) => [...prev, ...files]); // ✅ store FILES
-
-    const urls = files.map((f) => URL.createObjectURL(f));
-    setPreviewImages((prev) => [...prev, ...urls]); // ✅ for UI only
+    addImageFiles(Array.from(e.target.files));
+    e.target.value = null;
   };
 
   useEffect(() => {
     return () => {
-      previewImages.forEach((url) => URL.revokeObjectURL(url));
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      previewUrlsRef.current = [];
     };
-  }, [previewImages]);
+  }, []);
 
   const selectedArea = locationDataset.find(
     (item) => item.area_id === selectedAreaId,
@@ -1420,12 +1434,10 @@ export default function CreateListing() {
 
               <div
                 style={{
-                  display: "grid",
-
-                  gridTemplateColumns: isMobile
-                    ? "1fr"
-                    : "1fr repeat(4, 120px)",
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
                   gap: 14,
+                  alignItems: "flex-start",
                 }}
               >
                 {/* Drop zone */}
@@ -1434,6 +1446,8 @@ export default function CreateListing() {
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
                   style={{
+                    flex: isMobile ? "none" : "0 0 320px",
+                    width: isMobile ? "100%" : "320px",
                     border: "2px dashed #c4b8f8",
                     borderRadius: 16,
                     display: "flex",
@@ -1493,84 +1507,63 @@ export default function CreateListing() {
                 </div>
 
                 {/* Uploaded image thumbnails */}
-                {previewImages.slice(0, 4).map((src, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      borderRadius: 16,
-                      overflow: "hidden",
-                      position: "relative",
-                      minHeight: 180,
-                    }}
-                  >
-                    <img
-                      src={src}
-                      alt={`upload-${i}`}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    overflowX: "auto",
+                    width: "100%",
+                    minHeight: 180,
+                    paddingBottom: 4,
+                  }}
+                >
+                  {previewImages.map((src, i) => (
+                    <div
+                      key={i}
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-                    {/* <button
-                      onClick={() =>
-                        setUploadedImages((prev) =>
-                          prev.filter((_, idx) => idx !== i),
-                        )
-                        
-                      }
-                      
-                      style={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        backgroundColor: "rgba(0,0,0,0.5)",
-                        border: "none",
-                        color: "#fff",
-                        fontSize: 14,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        borderRadius: 16,
+                        overflow: "hidden",
+                        position: "relative",
+                        minHeight: 180,
+                        minWidth: 140,
+                        flex: "0 0 140px",
+                        backgroundColor: "#fff",
                       }}
                     >
-                      ×
-                    </button> */}
-                    <button
-                      style={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        backgroundColor: "rgba(0,0,0,0.5)",
-                        border: "none",
-                        color: "#fff",
-                        fontSize: 14,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                      onClick={() => {
-                        setUploadedImages((prev) =>
-                          prev.filter((_, idx) => idx !== i),
-                        );
-
-                        setPreviewImages((prev) =>
-                          prev.filter((_, idx) => idx !== i),
-                        );
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      <img
+                        src={src}
+                        alt={`upload-${i}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+                      <button
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          border: "none",
+                          color: "#fff",
+                          fontSize: 14,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        onClick={() => removeImage(i)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

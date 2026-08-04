@@ -18,11 +18,27 @@ import {
 const router = express.Router();
 import {authMiddleware} from "../utils/middleware.js"
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { files: 10 } });
 
+const uploadImages = (req, res, next) => {
+  upload.array("images", 10)(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_UNEXPECTED_FILE" || err.code === "LIMIT_FILE_COUNT") {
+          return res.status(400).json({
+            error:
+              "Too many images uploaded. Maximum 10 files are allowed with field name 'images'.",
+          });
+        }
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+};
 
 // Routes
-router.post("/", upload.array("images", 5),authMiddleware,  createListing);          // POST /api/listings
+router.post("/", uploadImages, authMiddleware, createListing);          // POST /api/listings
 router.get("/", getListings);              // GET /api/listings?location=jadavpur&maxPrice=7000
 router.get("/getall", getAllData);
 router.get("/mydata",authMiddleware,getOwnerListings);

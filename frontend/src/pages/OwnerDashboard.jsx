@@ -18,7 +18,9 @@ function StatusBadge({ status }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: 6,
+        minWidth: 90,
         padding: "4px 12px",
         fontSize: 12,
         fontWeight: 700,
@@ -33,7 +35,6 @@ function StatusBadge({ status }) {
           height: 7,
           borderRadius: "50%",
           backgroundColor: isActive ? "#0d9488" : "#9ca3af",
-          // backgroundColor: isActive ? "#9ca3af" : "#0d9488",
           display: "inline-block",
         }}
       />
@@ -110,23 +111,21 @@ function PropertyRow({ property, onDelete,handleStatus,handleEdit  }) {
       </td>
 
       {/* 🟢 Status */}
-    <td style={{ padding: "14px 16px" }}>
-  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-
-    {/* 🟢 Status */}
-   <span
-  onClick={() =>
-        handleStatus(property._id, property.status)
-      }
-  style={{ cursor: "pointer" }}
->
-  <StatusBadge status={property.status ?? "active"} />
-</span>
-
-  
-
-  </div>
-</td>
+<td style={{ padding: "14px 16px", whiteSpace: "nowrap", width: 170, minWidth: 170 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-start" }}>
+          <button
+            onClick={() => handleStatus(property._id, property.status)}
+            style={{
+              cursor: "pointer",
+              border: "none",
+              background: "transparent",
+              padding: 0,
+            }}
+          >
+            <StatusBadge status={property.status ?? "active"} />
+          </button>
+        </div>
+      </td>
   
 
       {/* ⚙️ Actions */}
@@ -781,6 +780,12 @@ const handleUpdate = async (form) => {
                     minWidth: 560,
                   }}
                 >
+                  <colgroup>
+                    <col style={{ width: "60%" }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "8%" }} />
+                  </colgroup>
                   <thead>
                     <tr style={{ backgroundColor: "#f3eeff" }}>
                       {tablerow.map((h, i) => (
