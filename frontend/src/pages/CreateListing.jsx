@@ -1427,7 +1427,7 @@ export default function CreateListing() {
                   <span
                     style={{ fontSize: 12, color: "#9b96b8", fontWeight: 500 }}
                   >
-                    4 photos are required • JPEG/PNG
+                    You can upload up to 10 photos.• JPEG/PNG
                   </span>
                 </div>
               </div>
