@@ -4,6 +4,7 @@ import MainFooter from "../components/MainFooter";
 import SEO from "../components/SEO.jsx";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import StudentReviews from "./Studentreviews.jsx";
 
 const PROXIMITY = [
   {
@@ -874,6 +875,9 @@ export default function PropertyDetails() {
               </div>
             </div>
 
+            {/* <div class>
+              <StudentReviews/>
+            </div> */}
             {/* Academic Peace of Mind */}
             <div className="pd-peace-banner">
               <div>

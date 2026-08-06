@@ -143,6 +143,7 @@ import UserData from "./pages/UserData";
 import EditListingModal from "./pages/EditListingModal";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import StudentReviews from "./pages/Studentreviews";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -193,6 +194,15 @@ function App() {
             <ProtectedRoute>
               <UserData />
             </ProtectedRoute>
+          }
+        />
+
+          <Route
+          path="/studentreviews"
+          element={
+           
+              <StudentReviews />
+            
           }
         />
         <Route
